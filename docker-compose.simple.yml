@@ -1,0 +1,187 @@
+version: '3.8'
+
+services:
+  # API Gateway Service
+  dipc-api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "38100:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://dipc_user:dipc_password@dipc-db:5432/dipc}
+      - REDIS_URL=${REDIS_URL:-redis://dipc-redis:6379/0}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://dipc-redis:6379/0}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://dipc-redis:6379/0}
+      # Local storage configuration
+      - STORAGE_TYPE=${STORAGE_TYPE:-local}
+      - LOCAL_STORAGE_PATH=${LOCAL_STORAGE_PATH:-/app/storage}
+      - STORAGE_BASE_URL=${STORAGE_BASE_URL:-http://localhost:38100/storage}
+      # LLM Provider Configuration
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_BASE_URL=${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-openai/gpt-4o-mini}
+      - LITELM_BASE_URL=${LITELM_BASE_URL:-}
+      - LITELM_API_KEY=${LITELM_API_KEY:-}
+      - LITELM_MODEL=${LITELM_MODEL:-gpt-4o-mini}
+      # Application Configuration
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-dev-jwt-secret-change-in-production}
+      # Vector Database Configuration
+      - ENABLE_VECTORIZATION=${ENABLE_VECTORIZATION:-true}
+      - QDRANT_URL=${QDRANT_URL:-http://dipc-qdrant:6333}
+      - QDRANT_API_KEY=${QDRANT_API_KEY:-}
+    depends_on:
+      - dipc-db
+      - dipc-redis
+      - dipc-qdrant
+    volumes:
+      - ./api:/app
+      - dipc-storage:/app/storage
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Celery Worker (single instance for simplicity)
+  dipc-worker:
+    build:
+      context: ./workers
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://dipc_user:dipc_password@dipc-db:5432/dipc}
+      - REDIS_URL=${REDIS_URL:-redis://dipc-redis:6379/0}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://dipc-redis:6379/0}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://dipc-redis:6379/0}
+      # Local storage configuration
+      - STORAGE_TYPE=${STORAGE_TYPE:-local}
+      - LOCAL_STORAGE_PATH=${LOCAL_STORAGE_PATH:-/app/storage}
+      - STORAGE_BASE_URL=${STORAGE_BASE_URL:-http://localhost:38100/storage}
+      # LLM Provider Configuration
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_BASE_URL=${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-openai/gpt-4o-mini}
+      - LITELM_BASE_URL=${LITELM_BASE_URL:-}
+      - LITELM_API_KEY=${LITELM_API_KEY:-}
+      - LITELM_MODEL=${LITELM_MODEL:-gpt-4o-mini}
+      # Application Configuration
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      # Vector Database Configuration
+      - ENABLE_VECTORIZATION=${ENABLE_VECTORIZATION:-true}
+      - QDRANT_URL=${QDRANT_URL:-http://dipc-qdrant:6333}
+      - QDRANT_API_KEY=${QDRANT_API_KEY:-}
+    depends_on:
+      - dipc-db
+      - dipc-redis
+      - dipc-qdrant
+    volumes:
+      - ./workers:/app
+      - dipc-storage:/app/storage
+      - /tmp/dipc-processing:/tmp/processing
+    command: celery -A src.celery_app worker --loglevel=info --concurrency=1
+    healthcheck:
+      test: ["CMD", "celery", "-A", "src.celery_app", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Frontend Application
+  dipc-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "38110:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:38100}
+      - NODE_ENV=${NODE_ENV:-development}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
+    depends_on:
+      - dipc-api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # PostgreSQL Database
+  dipc-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-dipc}
+      - POSTGRES_USER=${POSTGRES_USER:-dipc_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dipc_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - dipc-postgres-data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dipc_user} -d ${POSTGRES_DB:-dipc}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis for Celery
+  dipc-redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - dipc-redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Qdrant Vector Database
+  dipc-qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    volumes:
+      - dipc-qdrant-data:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  dipc-postgres-data:
+    driver: local
+  dipc-redis-data:
+    driver: local
+  dipc-qdrant-data:
+    driver: local
+  dipc-storage:
+    driver: local
+
+networks:
+  default:
+    name: dipc-network
+    driver: bridge
