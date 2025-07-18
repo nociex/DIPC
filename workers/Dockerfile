@@ -3,7 +3,7 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies for document processing
+# Install system dependencies for document processing (minimal set)
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y \
     poppler-utils \
     tesseract-ocr \
     tesseract-ocr-eng \
-    libreoffice \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 

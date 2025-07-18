@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import type { TaskOptions } from '@/types'
-import { StoragePolicy } from '../../../../shared/types'
+import { StoragePolicy } from '@/types'
 
 interface TaskConfigPanelProps {
   onConfigChange: (config: TaskOptions) => void
@@ -88,7 +88,7 @@ export function TaskConfigPanel({
   }
 
   const handleVectorizationToggle = (enabled: boolean) => {
-    setConfig(prev => ({ ...prev, enable_vectorization: enabled }))
+    setConfig((prev: TaskOptions) => ({ ...prev, enable_vectorization: enabled }))
     
     if (enabled) {
       toast({
@@ -105,7 +105,7 @@ export function TaskConfigPanel({
 
   const handleStoragePolicyChange = (policy: string) => {
     const storagePolicy = policy === 'permanent' ? StoragePolicy.PERMANENT : StoragePolicy.TEMPORARY
-    setConfig(prev => ({ ...prev, storage_policy: storagePolicy }))
+    setConfig((prev: TaskOptions) => ({ ...prev, storage_policy: storagePolicy }))
     
     toast({
       title: `Storage policy updated`,
@@ -116,7 +116,7 @@ export function TaskConfigPanel({
   }
 
   const handleCostLimitChange = (limit: number) => {
-    setConfig(prev => ({ ...prev, max_cost_limit: limit }))
+    setConfig((prev: TaskOptions) => ({ ...prev, max_cost_limit: limit }))
   }
 
   const isOverCostLimit = costEstimate.estimatedCost > (config.max_cost_limit || 0)

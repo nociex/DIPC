@@ -17,11 +17,14 @@ class WorkerSettings(BaseSettings):
     celery_broker_url: str = "redis://localhost:6379"
     celery_result_backend: str = "redis://localhost:6379"
     
-    # S3/MinIO Configuration
-    s3_endpoint_url: str = "http://localhost:9000"
-    s3_access_key_id: str = "test"
-    s3_secret_access_key: str = "test"
-    s3_bucket_name: str = "test"
+    # Storage Configuration
+    storage_type: str = "local"
+    
+    # S3/MinIO Configuration (optional for local storage)
+    s3_endpoint_url: Optional[str] = None
+    s3_access_key_id: Optional[str] = None
+    s3_secret_access_key: Optional[str] = None
+    s3_bucket_name: Optional[str] = None
     
     # LLM Provider Configuration
     openai_api_key: Optional[str] = None
@@ -90,14 +93,14 @@ def validate_worker_settings():
     if not worker_settings.celery_broker_url:
         errors.append("CELERY_BROKER_URL is required")
     
-    # Check S3 configuration
-    if not all([
+    # Check S3 configuration only if using S3 storage
+    if worker_settings.storage_type == "s3" and not all([
         worker_settings.s3_endpoint_url,
         worker_settings.s3_access_key_id,
         worker_settings.s3_secret_access_key,
         worker_settings.s3_bucket_name
     ]):
-        errors.append("S3 configuration is incomplete")
+        errors.append("S3 configuration is incomplete when using S3 storage")
     
     # Check LLM provider
     if not worker_settings.has_llm_provider():
@@ -125,10 +128,10 @@ def get_celery_config() -> dict:
         'timezone': 'UTC',
         'enable_utc': True,
         'task_routes': {
-            'workers.tasks.archive.*': {'queue': 'archive_processing'},
-            'workers.tasks.parsing.*': {'queue': 'document_parsing'},
-            'workers.tasks.vectorization.*': {'queue': 'vectorization'},
-            'workers.tasks.cleanup.*': {'queue': 'cleanup'},
+            'src.tasks.archive.*': {'queue': 'archive_processing'},
+            'src.tasks.parsing.*': {'queue': 'document_parsing'},
+            'src.tasks.vectorization.*': {'queue': 'vectorization'},
+            'src.tasks.cleanup.*': {'queue': 'cleanup'},
         },
         'task_default_queue': 'document_parsing',
         'worker_prefetch_multiplier': 1,

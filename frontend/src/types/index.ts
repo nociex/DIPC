@@ -1,8 +1,6 @@
 // Re-export shared types for frontend use
 export type {
   Task,
-  TaskStatus,
-  TaskType,
   TaskOptions,
   TaskCreateRequest,
   TaskResponse,
@@ -14,11 +12,17 @@ export type {
   TokenUsage,
   DocumentMetadata,
   FileMetadata,
-  StoragePolicy,
   UploadProgress,
   TaskListItem,
   SystemConfig
-} from '../../../shared/types'
+} from './shared'
+
+// Re-export shared enums
+export {
+  TaskStatus,
+  TaskType,
+  StoragePolicy
+} from './shared'
 
 // Frontend-specific types
 export interface ApiError {

@@ -6,7 +6,7 @@ from celery.signals import worker_ready, worker_shutdown
 from kombu import Queue
 import structlog
 
-from config import worker_settings, get_celery_config, validate_worker_settings
+from .config import worker_settings, get_celery_config, validate_worker_settings
 
 # Configure structured logging
 logger = structlog.get_logger(__name__)
@@ -20,10 +20,10 @@ celery_app.conf.update(celery_config)
 
 # Define queues with specific routing and priority
 celery_app.conf.task_routes = {
-    'workers.tasks.archive.process_archive_task': {'queue': 'archive_processing'},
-    'workers.tasks.parsing.parse_document_task': {'queue': 'document_parsing'},
-    'workers.tasks.vectorization.vectorize_content_task': {'queue': 'vectorization'},
-    'workers.tasks.cleanup.cleanup_temporary_files_task': {'queue': 'cleanup'},
+    'src.tasks.archive.process_archive_task': {'queue': 'archive_processing'},
+    'src.tasks.parsing.parse_document_task': {'queue': 'document_parsing'},
+    'src.tasks.vectorization.vectorize_content_task': {'queue': 'vectorization'},
+    'src.tasks.cleanup.cleanup_temporary_files_task': {'queue': 'cleanup'},
 }
 
 # Configure queues with different priorities and settings
@@ -164,7 +164,7 @@ def get_celery_health_status():
 
 
 # Auto-discover tasks
-celery_app.autodiscover_tasks(['workers.tasks'])
+celery_app.autodiscover_tasks(['src.tasks'])
 
 # Export the app
 __all__ = ['celery_app', 'get_celery_health_status']

@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/components/ui/use-toast'
-import type { Task, TaskStatus } from '@/types'
+import type { Task } from '@/types'
+import { TaskStatus } from '@/types'
 
 interface TaskListViewProps {
   tasks: Task[]
@@ -40,15 +41,15 @@ function TaskStatusIcon({ status }: { status: TaskStatus }) {
 }
 
 function TaskStatusBadge({ status }: { status: TaskStatus }) {
-  const statusConfig = {
-    pending: { label: 'Pending', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-    processing: { label: 'Processing', className: 'bg-blue-100 text-blue-800 border-blue-200' },
-    completed: { label: 'Completed', className: 'bg-green-100 text-green-800 border-green-200' },
-    failed: { label: 'Failed', className: 'bg-red-100 text-red-800 border-red-200' },
-    cancelled: { label: 'Cancelled', className: 'bg-gray-100 text-gray-800 border-gray-200' }
+  const statusConfig: Record<TaskStatus, { label: string; className: string }> = {
+    [TaskStatus.PENDING]: { label: 'Pending', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+    [TaskStatus.PROCESSING]: { label: 'Processing', className: 'bg-blue-100 text-blue-800 border-blue-200' },
+    [TaskStatus.COMPLETED]: { label: 'Completed', className: 'bg-green-100 text-green-800 border-green-200' },
+    [TaskStatus.FAILED]: { label: 'Failed', className: 'bg-red-100 text-red-800 border-red-200' },
+    [TaskStatus.CANCELLED]: { label: 'Cancelled', className: 'bg-gray-100 text-gray-800 border-gray-200' }
   }
 
-  const config = statusConfig[status] || statusConfig.pending
+  const config = statusConfig[status] || statusConfig[TaskStatus.PENDING]
 
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${config.className}`}>

@@ -17,11 +17,18 @@ class Settings(BaseSettings):
     celery_broker_url: str
     celery_result_backend: str
     
-    # S3/MinIO Configuration
-    s3_endpoint_url: str
-    s3_access_key_id: str
-    s3_secret_access_key: str
-    s3_bucket_name: str
+    # Storage Configuration
+    storage_type: str = "local"
+    
+    # S3/MinIO Configuration (optional for local storage)
+    s3_endpoint_url: Optional[str] = None
+    s3_access_key_id: Optional[str] = None
+    s3_secret_access_key: Optional[str] = None
+    s3_bucket_name: Optional[str] = None
+    
+    # Local Storage Configuration
+    local_storage_path: str = "/app/storage"
+    storage_base_url: str = "http://localhost:38100/storage"
     
     # LLM Provider Configuration
     openai_api_key: Optional[str] = None
@@ -101,14 +108,14 @@ def validate_required_settings():
     if not settings.redis_url:
         errors.append("REDIS_URL is required")
     
-    # Check S3 configuration
-    if not all([
+    # Check S3 configuration only if using S3 storage
+    if settings.storage_type == "s3" and not all([
         settings.s3_endpoint_url,
         settings.s3_access_key_id,
         settings.s3_secret_access_key,
         settings.s3_bucket_name
     ]):
-        errors.append("S3 configuration is incomplete")
+        errors.append("S3 configuration is incomplete when using S3 storage")
     
     # Check security keys
     if not settings.secret_key:
