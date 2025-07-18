@@ -1,10 +1,10 @@
 # Document Intelligence & Parsing Center (DIPC)
 
-[![Build Status](https://github.com/your-org/dipc/workflows/CI/badge.svg)](https://github.com/your-org/dipc/actions)
-[![Coverage](https://codecov.io/gh/your-org/dipc/branch/main/graph/badge.svg)](https://codecov.io/gh/your-org/dipc)
+[![Build and Push Multi-Architecture Images](https://github.com/nociex/DIPC/actions/workflows/build-and-push.yml/badge.svg)](https://github.com/nociex/DIPC/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Node.js 18+](https://img.shields.io/badge/node-18+-green.svg)](https://nodejs.org/)
+[![Docker Images](https://img.shields.io/badge/docker-multi--arch-blue.svg)](https://github.com/nociex/DIPC/pkgs/container/dipc-api)
 
 A comprehensive document processing system that leverages multi-modal Large Language Models (LLMs) to extract structured information from various document formats including PDFs, images, and ZIP archives.
 
@@ -60,41 +60,153 @@ graph TD
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### 方法一：使用预构建的 Docker 镜像（推荐，最简单！）
 
-- Docker 20.10+
-- Docker Compose 2.0+
-- Git
+我们提供了预构建的多架构 Docker 镜像（支持 x86_64 和 ARM64），让您可以在 3 分钟内完成部署。
 
-### Installation
+#### 前置要求
 
-1. **Clone the repository**
+- Docker 20.10+ （[安装指南](https://docs.docker.com/get-docker/)）
+- Docker Compose 2.0+ （通常随 Docker Desktop 一起安装）
+
+#### 🚀 超简单部署方式
+
+##### 选项 A：一键部署脚本（最简单！）
+
+```bash
+# 下载并运行快速部署脚本
+curl -fsSL https://raw.githubusercontent.com/nociex/DIPC/main/quick-deploy.sh | bash
+```
+
+脚本会自动：
+- ✅ 检查 Docker 环境
+- ✅ 下载必要的配置文件  
+- ✅ 引导您配置 API Key
+- ✅ 拉取镜像并启动服务
+- ✅ 验证服务运行状态
+
+##### 选项 B：手动部署
+
+1. **下载配置文件**
    ```bash
-   git clone https://github.com/your-org/dipc.git
-   cd dipc
+   # 创建项目目录
+   mkdir dipc && cd dipc
+   
+   # 下载 docker-compose 文件（已配置使用预构建镜像）
+   curl -O https://raw.githubusercontent.com/nociex/DIPC/main/docker-compose.yml
+   
+   # 下载数据库初始化脚本
+   curl -O https://raw.githubusercontent.com/nociex/DIPC/main/db/init.sql
+   mkdir -p db && mv init.sql db/
    ```
 
-2. **Set up environment variables**
+2. **创建配置文件**
+   ```bash
+   # 创建环境变量文件（只需要配置 API key）
+   cat > .env << EOF
+   # 选择一个 LLM Provider（必需）
+   # 选项 1：使用 OpenAI
+   OPENAI_API_KEY=sk-your-openai-key
+   
+   # 选项 2：使用 OpenRouter（支持更多模型）
+   # OPENROUTER_API_KEY=sk-or-your-openrouter-key
+   
+   # 选项 3：使用兼容 OpenAI API 的其他服务
+   # OPENAI_API_KEY=your-api-key
+   # OPENAI_API_BASE=https://your-api-endpoint.com/v1
+   EOF
+   ```
+
+3. **启动应用**
+   ```bash
+   # 拉取镜像并启动所有服务
+   docker-compose pull
+   docker-compose up -d
+   
+   # 查看启动状态
+   docker-compose ps
+   
+   # 查看日志（可选）
+   docker-compose logs -f
+   ```
+
+4. **访问应用** 🎉
+   - 📱 前端界面: http://localhost:3000
+   - 🔌 API 接口: http://localhost:38100
+   - 📚 API 文档: http://localhost:38100/docs
+
+#### 常见问题解决
+
+1. **如果端口被占用**
+   编辑 `docker-compose.yml`，修改端口映射：
+   ```yaml
+   ports:
+     - "3001:3000"  # 前端改为 3001
+     - "38101:8000" # API 改为 38101
+   ```
+
+2. **如果需要使用代理**
+   在 `.env` 文件中添加：
+   ```bash
+   HTTP_PROXY=http://your-proxy:port
+   HTTPS_PROXY=http://your-proxy:port
+   ```
+
+3. **查看服务状态**
+   ```bash
+   # 检查所有服务是否正常运行
+   docker-compose ps
+   
+   # 检查 API 健康状态
+   curl http://localhost:38100/v1/health
+   ```
+
+### 方法二：从源码构建
+
+如果您想自定义构建或开发：
+
+1. **克隆仓库**
+   ```bash
+   git clone https://github.com/nociex/DIPC.git
+   cd DIPC
+   ```
+
+2. **设置环境变量**
    ```bash
    cp .env.example .env
-   # Edit .env with your configuration
+   # 编辑 .env 配置您的 API keys
    nano .env
    ```
 
-3. **Start the services**
+3. **构建并启动服务**
    ```bash
-   docker-compose up -d
+   # 使用开发环境配置文件构建
+   docker-compose -f docker-compose.simple.yml up -d --build
    ```
 
-4. **Run database migrations**
+4. **运行数据库迁移**
    ```bash
    docker-compose exec api python -m alembic upgrade head
    ```
 
-5. **Access the application**
-   - Frontend: http://localhost:3000
-   - API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
+5. **访问应用**
+   - 前端界面: http://localhost:3000
+   - API 接口: http://localhost:38100
+   - API 文档: http://localhost:38100/docs
+
+### 🐳 Docker 镜像说明
+
+我们提供以下预构建的 Docker 镜像：
+
+| 镜像名称 | 说明 | 支持架构 |
+|---------|------|---------|
+| `ghcr.io/nociex/dipc-api:latest` | API 网关服务 | amd64, arm64 |
+| `ghcr.io/nociex/dipc-worker:latest` | 文档处理工作器 | amd64, arm64 |
+| `ghcr.io/nociex/dipc-frontend:latest` | Web 前端界面 | amd64, arm64 |
+
+您也可以使用特定版本标签，例如：
+- `ghcr.io/nociex/dipc-api:v1.0.0`
+- `ghcr.io/nociex/dipc-api:main-a1b2c3d`
 
 ## 📖 Documentation
 
@@ -287,14 +399,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Getting Help
 
-- **Documentation**: [docs.dipc.example.com](https://docs.dipc.example.com)
-- **Issues**: [GitHub Issues](https://github.com/your-org/dipc/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/dipc/discussions)
-- **Email**: support@dipc.example.com
-
-### Status Page
-
-Check system status at [status.dipc.example.com](https://status.dipc.example.com)
+- **Documentation**: 查看本 README 和 docs 目录
+- **Issues**: [GitHub Issues](https://github.com/nociex/DIPC/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/nociex/DIPC/discussions)
+- **Docker Images**: [GitHub Container Registry](https://github.com/nociex/DIPC/pkgs/container/dipc-api)
 
 ## 🗺️ Roadmap
 
@@ -337,4 +445,4 @@ Check system status at [status.dipc.example.com](https://status.dipc.example.com
 
 **Built with ❤️ by the DIPC Team**
 
-For more information, visit our [website](https://dipc.example.com) or check out the [documentation](https://docs.dipc.example.com).
+更多信息请访问 [GitHub 仓库](https://github.com/nociex/DIPC) 或查看 [预构建镜像](https://github.com/nociex/DIPC/packages)。

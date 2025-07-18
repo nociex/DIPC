@@ -1,9 +1,14 @@
+# DIPC Production Docker Compose
+# 此文件使用预构建的镜像，适合生产环境和快速部署
+# 如需从源码构建，请使用 docker-compose.simple.yml
+#
+# 预构建镜像支持 x86_64 和 ARM64 架构
+# 镜像地址：ghcr.io/nociex/dipc-{api,worker,frontend}:latest
+
 services:
   # API Gateway Service
   api:
-    build:
-      context: ./api
-      dockerfile: Dockerfile
+    image: ghcr.io/nociex/dipc-api:latest
     ports:
       - "38100:8000"
     env_file:
@@ -18,15 +23,16 @@ services:
       - dipc-db
       - dipc-redis
       - dipc-qdrant
-    volumes:
-      - ./api:/app
-    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Celery Workers
   worker:
-    build:
-      context: ./workers
-      dockerfile: Dockerfile
+    image: ghcr.io/nociex/dipc-worker:latest
     env_file:
       - .env
     environment:
@@ -38,62 +44,72 @@ services:
       - dipc-db
       - dipc-redis
     volumes:
-      - ./workers:/app
       - /tmp/dipc-processing:/tmp/processing
     deploy:
       replicas: 2
-    command: celery -A src.celery_app worker --loglevel=info --concurrency=2
+    restart: unless-stopped
 
   # Frontend Application
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/nociex/dipc-frontend:latest
     ports:
       - "38110:3000"
     env_file:
       - .env
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:38100
-      - NODE_ENV=development
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    command: npm run dev
+    depends_on:
+      - api
+    restart: unless-stopped
 
   # PostgreSQL Database
   dipc-db:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     environment:
       - POSTGRES_DB=dipc
       - POSTGRES_USER=dipc_user
       - POSTGRES_PASSWORD=dipc_password
     ports:
-      - "5432:5432"
+      - "35432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "dipc_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Redis for Celery
   dipc-redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "36379:6379"
     volumes:
       - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Qdrant Vector Database
   dipc-qdrant:
     image: qdrant/qdrant:latest
     ports:
-      - "6333:6333"
+      - "36333:6333"
+      - "36334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
+    restart: unless-stopped
 
 volumes:
   postgres_data:
   redis_data:
   qdrant_data:
+  dipc-storage:
 
 networks:
   default:

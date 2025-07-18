@@ -1,3 +1,9 @@
+# DIPC Development Docker Compose
+# 此文件用于从源码构建镜像，适合开发环境
+# 如需使用预构建镜像，请使用 docker-compose.yml
+#
+# 注意：此文件被 GitHub Actions 用于构建多架构镜像
+
 version: '3.8'
 
 services:
