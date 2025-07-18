@@ -37,7 +37,7 @@ function JsonViewer({ data, level = 0, expanded = true }: JsonViewerProps) {
   }
   
   if (typeof data === 'string') {
-    return <span className="text-red-600">"{data}"</span>
+    return <span className="text-red-600">&quot;{data}&quot;</span>
   }
   
   if (Array.isArray(data)) {
@@ -87,7 +87,7 @@ function JsonViewer({ data, level = 0, expanded = true }: JsonViewerProps) {
           <div className="ml-4 border-l border-gray-200 pl-4 mt-1">
             {keys.map((key) => (
               <div key={key} className="py-1">
-                <span className="text-purple-600 font-medium">"{key}"</span>
+                <span className="text-purple-600 font-medium">&quot;{key}&quot;</span>
                 <span className="text-gray-500">: </span>
                 <JsonViewer data={data[key]} level={level + 1} expanded={level < 1} />
               </div>
@@ -144,7 +144,7 @@ export function ResultsViewer({ task, onDownload, className }: ResultsViewerProp
             <div>
               <h3 className="text-lg font-medium">No results available</h3>
               <p className="text-muted-foreground">
-                This task hasn't completed yet or has no results to display
+                This task hasn&apos;t completed yet or has no results to display
               </p>
             </div>
           </div>
