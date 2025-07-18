@@ -19,8 +19,24 @@ COPY . .
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build the Next.js application
-RUN npm run build
+# Debug: Show environment and installed packages
+RUN echo "=== Build Environment ===" && \
+    node --version && \
+    npm --version && \
+    echo "=== Installed packages ===" && \
+    npm list --depth=0 || true && \
+    echo "=== Directory contents ===" && \
+    ls -la
+
+# Build the Next.js application with verbose output
+RUN npm run build --verbose || \
+    (echo "=== Build Failed ===" && \
+     echo "=== Package.json ===" && \
+     cat package.json && \
+     echo "=== Error details ===" && \
+     npm run build 2>&1 | tee /tmp/build.log && \
+     cat /tmp/build.log && \
+     exit 1)
 
 # Production stage
 FROM node:18-alpine AS runner

@@ -88,6 +88,30 @@ jobs:
             # 添加 SHA 标签
             type=sha,prefix={{branch}}-,format=short
       
+      # 调试：显示构建上下文信息
+      - name: Debug - Show build context
+        if: matrix.service.name == 'frontend'
+        run: |
+          echo "=== Build context for ${{ matrix.service.name }} ==="
+          echo "Context: ${{ matrix.service.context }}"
+          echo "Dockerfile: ${{ matrix.service.dockerfile }}"
+          echo "=== Directory contents ==="
+          ls -la ${{ matrix.service.context }}
+          echo "=== Package.json contents ==="
+          cat ${{ matrix.service.context }}/package.json || echo "No package.json found"
+          echo "=== Checking for node_modules ==="
+          if [ -d "${{ matrix.service.context }}/node_modules" ]; then
+            echo "node_modules exists"
+          else
+            echo "node_modules does NOT exist"
+          fi
+      
+      # 设置 Docker Buildx 调试模式
+      - name: Enable Docker Buildx debug mode
+        run: |
+          echo "BUILDKIT_PROGRESS=plain" >> $GITHUB_ENV
+          echo "DOCKER_BUILDKIT=1" >> $GITHUB_ENV
+      
       # 构建并推送 Docker 镜像
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -100,12 +124,15 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # 启用详细日志输出
+          provenance: false
           # 为不同的服务设置构建参数（如果需要）
           build-args: |
             SERVICE_NAME=${{ matrix.service.name }}
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
             VCS_REF=${{ github.sha }}
             VERSION=${{ steps.meta.outputs.version }}
+            BUILDKIT_INLINE_CACHE=1
   
   # 构建完成后的通知任务（可选）
   notify:
