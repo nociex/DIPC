@@ -287,14 +287,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Getting Help
 
-- **Documentation**: [docs.dipc.example.com](https://docs.dipc.example.com)
+- **Documentation**: [docs.dipc.wendanai.com](https://docs.dipc.wendanai.com)
 - **Issues**: [GitHub Issues](https://github.com/your-org/dipc/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/your-org/dipc/discussions)
-- **Email**: support@dipc.example.com
+- **Email**: support@dipc.wendanai.com
 
 ### Status Page
 
-Check system status at [status.dipc.example.com](https://status.dipc.example.com)
+Check system status at [status.dipc.wendanai.com](https://status.dipc.wendanai.com)
 
 ## 🗺️ Roadmap
 
@@ -337,4 +337,4 @@ Check system status at [status.dipc.example.com](https://status.dipc.example.com
 
 **Built with ❤️ by the DIPC Team**
 
-For more information, visit our [website](https://dipc.example.com) or check out the [documentation](https://docs.dipc.example.com).
+For more information, visit our [website](https://dipc.wen dan ai.com) or check out the [documentation](https://docs.dipc.wendanai.com).
