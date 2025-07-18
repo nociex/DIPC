@@ -1,46 +1,58 @@
-FROM node:18-alpine
+# Build stage
+FROM node:18-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache libc6-compat
 
-# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies with verbose logging
-RUN npm ci --verbose
+# Install dependencies (including devDependencies for build)
+RUN npm ci
 
-# Copy application code
+# Copy source code
 COPY . .
 
-# Display environment and check files
-RUN echo "Node version:" && node --version && \
-    echo "NPM version:" && npm --version && \
-    echo "Files in /app:" && ls -la
-
-# Set environment variable for production build
+# Set build-time environment variables
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build the application with error output
-RUN npm run build || (echo "Build failed. Listing files:" && ls -la && exit 1)
+# Build the Next.js application
+RUN npm run build
 
-# Remove devDependencies after build to reduce image size
-RUN npm prune --production
+# Production stage
+FROM node:18-alpine AS runner
+
+# Install runtime dependencies
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Set production environment
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
 
-# Change ownership
+# Copy built application from builder stage
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+
+# Install only production dependencies
+RUN npm ci --only=production
+
+# Change ownership to non-root user
 RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
-# Expose port
 EXPOSE 3000
 
-# Start the application
+ENV PORT 3000
+
 CMD ["npm", "start"]
