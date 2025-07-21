@@ -310,6 +310,24 @@ export interface TranslationKeys {
   'onboarding.next': string;
   'onboarding.finish': string;
   
+  // About DIPC
+  'about.title': string;
+  'about.subtitle': string;
+  'about.description': string;
+  'about.features.title': string;
+  'about.features.ocr': string;
+  'about.features.table': string;
+  'about.features.layout': string;
+  'about.features.multilang': string;
+  'about.features.batch': string;
+  'about.features.export': string;
+  'about.usecases.title': string;
+  'about.usecases.invoice': string;
+  'about.usecases.contract': string;
+  'about.usecases.report': string;
+  'about.usecases.form': string;
+  'about.usecases.archive': string;
+  
   // Mobile Upload
   'upload.mobile.tapToExpand': string;
   'upload.mobile.swipeUpHint': string;
