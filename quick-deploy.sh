@@ -1,120 +1,210 @@
 #!/bin/bash
 
-# DIPC 快速部署脚本
-# 使用预构建的 Docker 镜像快速部署 DIPC
+# DIPC Quick Deploy Script
+# This script automates the deployment of DIPC using pre-built Docker images
 
 set -e
 
-echo "🚀 DIPC 快速部署脚本"
-echo "===================="
-echo ""
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# 检查 Docker 是否安装
-if ! command -v docker &> /dev/null; then
-    echo "❌ 错误：未检测到 Docker。请先安装 Docker。"
-    echo "   访问 https://docs.docker.com/get-docker/ 获取安装指南"
-    exit 1
-fi
+# Print colored message
+print_message() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${NC}"
+}
 
-# 检查 Docker Compose 是否安装
-if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
-    echo "❌ 错误：未检测到 Docker Compose。请先安装 Docker Compose。"
-    exit 1
-fi
-
-# 创建项目目录
-echo "📁 创建项目目录..."
-mkdir -p dipc && cd dipc
-
-# 下载必要文件
-echo "📥 下载配置文件..."
-curl -fsSL https://raw.githubusercontent.com/nociex/DIPC/main/docker-compose.yml -o docker-compose.yml
-curl -fsSL https://raw.githubusercontent.com/nociex/DIPC/main/db/init.sql -o init.sql
-mkdir -p db && mv init.sql db/
-
-# 检查是否已有 .env 文件
-if [ ! -f .env ]; then
+# Print header
+print_header() {
     echo ""
-    echo "🔑 配置 LLM Provider"
-    echo "请选择您的 LLM Provider："
+    print_message "$BLUE" "======================================"
+    print_message "$BLUE" "   DIPC Quick Deploy Script"
+    print_message "$BLUE" "======================================"
+    echo ""
+}
+
+# Check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Check Docker installation
+check_docker() {
+    print_message "$YELLOW" "Checking Docker installation..."
+    
+    if ! command_exists docker; then
+        print_message "$RED" "Error: Docker is not installed."
+        print_message "$YELLOW" "Please install Docker from: https://docs.docker.com/get-docker/"
+        exit 1
+    fi
+    
+    if ! command_exists docker-compose && ! docker compose version >/dev/null 2>&1; then
+        print_message "$RED" "Error: Docker Compose is not installed."
+        print_message "$YELLOW" "Please install Docker Compose from: https://docs.docker.com/compose/install/"
+        exit 1
+    fi
+    
+    # Check if Docker daemon is running
+    if ! docker info >/dev/null 2>&1; then
+        print_message "$RED" "Error: Docker daemon is not running."
+        print_message "$YELLOW" "Please start Docker and try again."
+        exit 1
+    fi
+    
+    print_message "$GREEN" "✓ Docker and Docker Compose are installed and running"
+}
+
+# Create project directory
+create_project_dir() {
+    print_message "$YELLOW" "Creating project directory..."
+    
+    if [ -d "dipc" ]; then
+        print_message "$YELLOW" "Directory 'dipc' already exists."
+        read -p "Do you want to continue? (y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            print_message "$YELLOW" "Deployment cancelled."
+            exit 0
+        fi
+    else
+        mkdir -p dipc
+    fi
+    
+    cd dipc
+    print_message "$GREEN" "✓ Project directory ready"
+}
+
+# Download configuration files
+download_configs() {
+    print_message "$YELLOW" "Downloading configuration files..."
+    
+    # Download docker-compose.yml
+    if [ -f "docker-compose.yml" ]; then
+        print_message "$YELLOW" "docker-compose.yml already exists, backing up..."
+        mv docker-compose.yml docker-compose.yml.backup
+    fi
+    
+    curl -fsSL https://raw.githubusercontent.com/nociex/DIPC/main/docker-compose.yml -o docker-compose.yml
+    
+    # Download .env.example
+    if [ ! -f ".env" ]; then
+        curl -fsSL https://raw.githubusercontent.com/nociex/DIPC/main/.env.example -o .env.example
+        cp .env.example .env
+    fi
+    
+    # Create db directory and download init.sql
+    mkdir -p db
+    curl -fsSL https://raw.githubusercontent.com/nociex/DIPC/main/db/init.sql -o db/init.sql
+    
+    print_message "$GREEN" "✓ Configuration files downloaded"
+}
+
+# Configure API key
+configure_api_key() {
+    print_message "$YELLOW" "Configuring API key..."
+    
+    # Check if API key is already configured
+    if grep -q "^OPENAI_API_KEY=sk-" .env 2>/dev/null || grep -q "^OPENROUTER_API_KEY=sk-" .env 2>/dev/null; then
+        print_message "$GREEN" "✓ API key already configured"
+        return
+    fi
+    
+    echo ""
+    print_message "$BLUE" "Please choose your LLM provider:"
     echo "1) OpenAI"
     echo "2) OpenRouter"
-    echo "3) 其他兼容 OpenAI API 的服务"
-    read -p "请输入选项 (1-3): " choice
-
+    echo "3) Custom OpenAI-compatible endpoint"
+    echo ""
+    
+    read -p "Enter your choice (1-3): " choice
+    
     case $choice in
         1)
-            read -p "请输入您的 OpenAI API Key: " api_key
-            cat > .env << EOF
-# OpenAI Configuration
-OPENAI_API_KEY=$api_key
-EOF
+            read -p "Enter your OpenAI API key: " api_key
+            sed -i.bak "s/# OPENAI_API_KEY=.*/OPENAI_API_KEY=$api_key/" .env
             ;;
         2)
-            read -p "请输入您的 OpenRouter API Key: " api_key
-            cat > .env << EOF
-# OpenRouter Configuration
-OPENROUTER_API_KEY=$api_key
-EOF
+            read -p "Enter your OpenRouter API key: " api_key
+            sed -i.bak "s/# OPENROUTER_API_KEY=.*/OPENROUTER_API_KEY=$api_key/" .env
             ;;
         3)
-            read -p "请输入 API Key: " api_key
-            read -p "请输入 API 端点 (例如: https://api.example.com/v1): " api_base
-            cat > .env << EOF
-# Custom OpenAI-compatible API
-OPENAI_API_KEY=$api_key
-OPENAI_API_BASE=$api_base
-EOF
+            read -p "Enter your API key: " api_key
+            read -p "Enter your API endpoint: " api_endpoint
+            sed -i.bak "s/# OPENAI_API_KEY=.*/OPENAI_API_KEY=$api_key/" .env
+            echo "OPENAI_API_BASE=$api_endpoint" >> .env
             ;;
         *)
-            echo "❌ 无效的选项"
+            print_message "$RED" "Invalid choice. Please run the script again."
             exit 1
             ;;
     esac
-    echo "✅ 配置文件创建成功"
-fi
+    
+    print_message "$GREEN" "✓ API key configured"
+}
 
-# 拉取镜像
-echo ""
-echo "🐳 拉取 Docker 镜像（这可能需要几分钟）..."
-docker-compose pull
+# Pull and start services
+deploy_services() {
+    print_message "$YELLOW" "Pulling Docker images..."
+    docker compose pull
+    
+    print_message "$YELLOW" "Starting services..."
+    docker compose up -d
+    
+    print_message "$GREEN" "✓ Services started"
+}
 
-# 启动服务
-echo ""
-echo "🚀 启动服务..."
-docker-compose up -d
+# Check service health
+check_services() {
+    print_message "$YELLOW" "Checking service health..."
+    
+    # Wait for services to start
+    sleep 10
+    
+    # Check if all services are running
+    if docker compose ps | grep -q "Exit\|Error"; then
+        print_message "$RED" "Some services failed to start:"
+        docker compose ps
+        print_message "$YELLOW" "Check logs with: docker compose logs"
+        exit 1
+    fi
+    
+    print_message "$GREEN" "✓ All services are running"
+}
 
-# 等待服务启动
-echo ""
-echo "⏳ 等待服务启动..."
-sleep 30
+# Print success message
+print_success() {
+    echo ""
+    print_message "$GREEN" "======================================"
+    print_message "$GREEN" "   Deployment Successful! 🎉"
+    print_message "$GREEN" "======================================"
+    echo ""
+    print_message "$BLUE" "Access your DIPC instance at:"
+    print_message "$YELLOW" "  Frontend:  http://localhost:38110"
+    print_message "$YELLOW" "  API Docs:  http://localhost:38100/docs"
+    echo ""
+    print_message "$BLUE" "Useful commands:"
+    print_message "$YELLOW" "  View logs:    docker compose logs -f"
+    print_message "$YELLOW" "  Stop services: docker compose down"
+    print_message "$YELLOW" "  Update:       docker compose pull && docker compose up -d"
+    echo ""
+}
 
-# 检查服务状态
-echo ""
-echo "🔍 检查服务状态..."
-docker-compose ps
+# Main execution
+main() {
+    print_header
+    check_docker
+    create_project_dir
+    download_configs
+    configure_api_key
+    deploy_services
+    check_services
+    print_success
+}
 
-# 测试 API 健康状态
-echo ""
-echo "🏥 检查 API 健康状态..."
-if curl -f http://localhost:38100/v1/health &> /dev/null; then
-    echo "✅ API 服务运行正常"
-else
-    echo "⚠️  API 服务可能还在启动中，请稍后再试"
-fi
-
-# 显示访问信息
-echo ""
-echo "🎉 部署完成！"
-echo "============"
-echo ""
-echo "📱 前端界面: http://localhost:3000"
-echo "🔌 API 接口: http://localhost:38100"
-echo "📚 API 文档: http://localhost:38100/docs"
-echo ""
-echo "💡 提示："
-echo "   - 查看日志: docker-compose logs -f"
-echo "   - 停止服务: docker-compose down"
-echo "   - 重启服务: docker-compose restart"
-echo ""
-echo "如有问题，请访问: https://github.com/nociex/DIPC/issues"
+# Run main function
+main
