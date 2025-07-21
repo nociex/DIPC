@@ -62,7 +62,11 @@ graph TD
 
 ### 方法一：使用预构建的 Docker 镜像（推荐，最简单！）
 
-我们提供了预构建的多架构 Docker 镜像（支持 x86_64 和 ARM64），让您可以在 3 分钟内完成部署。
+我们提供了预构建的多架构 Docker 镜像，让您可以在 3 分钟内完成部署。
+
+**🚀 支持的系统架构**：
+- ✅ **x86_64/amd64**：Intel、AMD 处理器的 Windows、Linux、Mac
+- ✅ **arm64/aarch64**：Apple Silicon Mac (M1/M2/M3)、ARM 服务器、树莓派 4/5
 
 #### 前置要求
 
@@ -196,17 +200,24 @@ curl -fsSL https://raw.githubusercontent.com/nociex/DIPC/main/quick-deploy.sh | 
 
 ### 🐳 Docker 镜像说明
 
-我们提供以下预构建的 Docker 镜像：
+我们提供以下预构建的 Docker 镜像，全部支持多架构（Multi-Architecture）：
 
 | 镜像名称 | 说明 | 支持架构 |
 |---------|------|---------|
-| `ghcr.io/nociex/dipc-api:latest` | API 网关服务 | amd64, arm64 |
-| `ghcr.io/nociex/dipc-worker:latest` | 文档处理工作器 | amd64, arm64 |
-| `ghcr.io/nociex/dipc-frontend:latest` | Web 前端界面 | amd64, arm64 |
+| `ghcr.io/nociex/dipc-api:latest` | API 网关服务 | `linux/amd64`, `linux/arm64` |
+| `ghcr.io/nociex/dipc-worker:latest` | 文档处理工作器 | `linux/amd64`, `linux/arm64` |
+| `ghcr.io/nociex/dipc-frontend:latest` | Web 前端界面 | `linux/amd64`, `linux/arm64` |
+
+**多架构支持说明**：
+- ✅ **Intel/AMD 处理器**：完全支持 x86_64/amd64 架构
+- ✅ **Apple Silicon (M1/M2/M3)**：原生支持 ARM64 架构，无需 Rosetta 转译
+- ✅ **ARM 服务器**：支持 AWS Graviton、树莓派 4/5 等 ARM64 设备
+- ✅ **自动架构选择**：Docker 会自动拉取适合您系统架构的镜像
 
 您也可以使用特定版本标签，例如：
-- `ghcr.io/nociex/dipc-api:v1.0.0`
-- `ghcr.io/nociex/dipc-api:main-a1b2c3d`
+- `ghcr.io/nociex/dipc-api:v1.0.0` - 特定版本
+- `ghcr.io/nociex/dipc-api:main-a1b2c3d` - 特定提交
+- `ghcr.io/nociex/dipc-api:latest` - 最新稳定版本
 
 ## 📖 Documentation
 
