@@ -355,6 +355,7 @@ export interface TranslationKeys {
   'accessibility.visual.title': string;
   'accessibility.interaction.title': string;
   'accessibility.audio.title': string;
+  'accessibility.settings.title': string;
   'accessibility.settings.toggle': string;
   
   // Skip Links

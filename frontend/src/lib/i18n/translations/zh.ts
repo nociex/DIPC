@@ -340,6 +340,7 @@ const zhTranslations: TranslationKeys = {
   'accessibility.visual.title': '视觉',
   'accessibility.interaction.title': '交互',
   'accessibility.audio.title': '音频',
+  'accessibility.settings.title': '辅助功能设置',
   'accessibility.settings.toggle': '辅助功能设置',
   
   // Skip Links
