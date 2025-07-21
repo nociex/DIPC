@@ -331,8 +331,10 @@ export interface TranslationKeys {
   'accessibility.skipToSidebar': string;
   'accessibility.highContrast': string;
   'accessibility.highContrast.description': string;
+  'accessibility.highContrast.short': string;
   'accessibility.reducedMotion': string;
   'accessibility.reducedMotion.description': string;
+  'accessibility.reducedMotion.short': string;
   'accessibility.fontSize': string;
   'accessibility.fontSize.description': string;
   'accessibility.fontSize.small': string;
