@@ -92,7 +92,7 @@ export function MainContent() {
           // Get presigned URL
           const presignedResponse = await api.getPresignedUrl({
             filename: file.name,
-            file_type: file.type,
+            content_type: file.type,
             file_size: file.size
           })
 
@@ -167,25 +167,32 @@ export function MainContent() {
 
   const handleDownloadResults = async (task: Task) => {
     try {
-      // In a real implementation, this would download the actual results
       toast({
         title: "Download started",
         description: `Downloading results for task ${task.id.slice(0, 8)}...`,
       })
       
-      // For demo purposes, we'll just show a message
-      // const blob = await api.downloadFile(task.id)
-      // const url = URL.createObjectURL(blob)
-      // const a = document.createElement('a')
-      // a.href = url
-      // a.download = `results-${task.id}.json`
-      // a.click()
-      // URL.revokeObjectURL(url)
+      // Download the task results as markdown
+      const blob = await api.downloadTaskResults(task.id)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `dipc-results-${task.id.slice(0, 8)}.md`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      
+      toast({
+        title: "Download complete",
+        description: "Results saved to your downloads folder",
+      })
       
     } catch (error) {
+      console.error('Download failed:', error)
       toast({
         title: "Download failed",
-        description: "Could not download results",
+        description: error instanceof Error ? error.message : "Could not download results",
         variant: "destructive",
       })
     }

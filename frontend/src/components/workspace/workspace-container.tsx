@@ -206,7 +206,7 @@ export function WorkspaceContainer({ children, className }: WorkspaceContainerPr
           // Get presigned URL
           const presignedResponse = await api.getPresignedUrl({
             filename: file.name,
-            file_type: file.type,
+            content_type: file.type,
             file_size: file.size
           })
 

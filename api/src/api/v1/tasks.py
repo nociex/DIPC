@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -333,4 +333,67 @@ async def list_tasks(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to list tasks: {str(e)}"
+        )
+
+
+@router.get("/{task_id}/download", response_class=Response)
+async def download_task_results(
+    task_id: str,
+    db: AsyncSession = Depends(get_db_session)
+):
+    """Download task results as a markdown file."""
+    try:
+        task_repo = TaskRepository(db)
+        task = await task_repo.get_by_id(task_id)
+        
+        if not task:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Task with ID {task_id} not found"
+            )
+        
+        # Check if task is completed
+        if task.status != TaskStatus.COMPLETED.value:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Task is not completed. Current status: {task.status}"
+            )
+        
+        # Check if results exist
+        if not task.results:
+            raise HTTPException(
+                status_code=404,
+                detail="No results available for this task"
+            )
+        
+        # Get markdown content from results
+        markdown_content = task.results.get("markdown", "")
+        if not markdown_content:
+            # If no markdown, try to get text content
+            markdown_content = task.results.get("text", "")
+        
+        if not markdown_content:
+            raise HTTPException(
+                status_code=404,
+                detail="No content available for download"
+            )
+        
+        # Create filename
+        filename = f"dipc-results-{task_id[:8]}.md"
+        
+        # Return as downloadable file
+        return Response(
+            content=markdown_content,
+            media_type="text/markdown",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to download task results: {str(e)}"
         )

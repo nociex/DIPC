@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import settings, validate_required_settings
@@ -85,6 +86,19 @@ def create_app() -> FastAPI:
     
     # Include API routes
     app.include_router(api_router, prefix="/v1")
+    
+    # Mount static files for local storage if configured
+    if settings.storage_type == "local":
+        import os
+        from pathlib import Path
+        
+        # Create storage directory if it doesn't exist
+        storage_path = Path(settings.local_storage_path)
+        storage_path.mkdir(parents=True, exist_ok=True)
+        
+        # Mount static files
+        app.mount("/storage", StaticFiles(directory=str(storage_path)), name="storage")
+        logger.info(f"Mounted local storage at /storage, serving from {storage_path}")
     
     # Health check endpoint
     @app.get("/health")

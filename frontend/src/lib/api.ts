@@ -189,24 +189,48 @@ class ApiClient {
     }
 
     async uploadFile(file: File, presignedUrl: string, onProgress?: (progress: number) => void): Promise<void> {
-        const formData = new FormData()
-        formData.append('file', file)
+        // Check if this is a local storage upload URL
+        if (presignedUrl.includes('/upload/')) {
+            // Local storage upload - use POST with FormData
+            const formData = new FormData()
+            formData.append('file', file)
 
-        await axios.put(presignedUrl, file, {
-            headers: {
-                'Content-Type': file.type,
-            },
-            onUploadProgress: (progressEvent) => {
-                if (onProgress && progressEvent.total) {
-                    const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-                    onProgress(progress)
-                }
-            },
-        })
+            await axios.post(presignedUrl, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                onUploadProgress: (progressEvent) => {
+                    if (onProgress && progressEvent.total) {
+                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+                        onProgress(progress)
+                    }
+                },
+            })
+        } else {
+            // S3 presigned URL upload - use PUT with file directly
+            await axios.put(presignedUrl, file, {
+                headers: {
+                    'Content-Type': file.type,
+                },
+                onUploadProgress: (progressEvent) => {
+                    if (onProgress && progressEvent.total) {
+                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+                        onProgress(progress)
+                    }
+                },
+            })
+        }
     }
 
     async downloadFile(fileId: string): Promise<Blob> {
         const response = await this.client.get(`/files/${fileId}/download`, {
+            responseType: 'blob'
+        })
+        return response.data
+    }
+
+    async downloadTaskResults(taskId: string): Promise<Blob> {
+        const response = await this.client.get(`/tasks/${taskId}/download`, {
             responseType: 'blob'
         })
         return response.data
@@ -259,6 +283,7 @@ export const api = {
     uploadFile: (file: File, presignedUrl: string, onProgress?: (progress: number) => void) =>
         apiClient.uploadFile(file, presignedUrl, onProgress),
     downloadFile: (fileId: string) => apiClient.downloadFile(fileId),
+    downloadTaskResults: (taskId: string) => apiClient.downloadTaskResults(taskId),
 
     // System
     healthCheck: () => apiClient.healthCheck(),

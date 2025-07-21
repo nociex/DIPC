@@ -212,6 +212,7 @@ class PresignedUrlResponse(BaseModel):
     """Response model for pre-signed URL generation."""
     upload_url: str = Field(description="Pre-signed URL for file upload")
     file_id: str = Field(description="Unique file identifier")
+    file_url: str = Field(description="URL for accessing the uploaded file")
     expires_at: datetime = Field(description="URL expiration timestamp")
     max_file_size: int = Field(description="Maximum allowed file size")
 

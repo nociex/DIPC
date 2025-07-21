@@ -218,3 +218,11 @@ kubeconfig
 *.pid
 *.seed
 *.pid.lock
+
+# Test files
+test_upload.py
+test_full_flow.py
+test_api_direct.py
+test-download-*.md
+test_document.md
+local_storage_demo.md

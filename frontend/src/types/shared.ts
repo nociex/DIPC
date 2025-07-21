@@ -84,14 +84,16 @@ export interface TaskResponse {
 
 export interface PresignedUrlRequest {
   filename: string;
-  file_type: string;
+  content_type: string;
   file_size: number;
 }
 
 export interface PresignedUrlResponse {
   upload_url: string;
+  file_id: string;
   file_url: string;
-  expires_in: number;
+  expires_at: string;
+  max_file_size: number;
 }
 
 // Processing Results
