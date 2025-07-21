@@ -25,17 +25,28 @@ RUN echo "=== Build Environment ===" && \
     npm --version && \
     echo "=== Installed packages ===" && \
     npm list --depth=0 || true && \
-    echo "=== Directory contents ===" && \
-    ls -la
+    echo "=== Directory structure ===" && \
+    ls -la && \
+    echo "=== src directory ===" && \
+    ls -la src/ && \
+    echo "=== src/lib directory ===" && \
+    ls -la src/lib/ && \
+    echo "=== Checking export-manager.ts ===" && \
+    ls -la src/lib/export-manager.ts || echo "export-manager.ts NOT FOUND"
+
+# Test imports before build
+COPY test-imports.js ./
+RUN node test-imports.js || true
 
 # Build the Next.js application with verbose output
-RUN npm run build --verbose || \
+RUN npm run build || \
     (echo "=== Build Failed ===" && \
-     echo "=== Package.json ===" && \
-     cat package.json && \
-     echo "=== Error details ===" && \
-     npm run build 2>&1 | tee /tmp/build.log && \
-     cat /tmp/build.log && \
+     echo "=== Current directory ===" && \
+     pwd && \
+     echo "=== tsconfig.json ===" && \
+     cat tsconfig.json && \
+     echo "=== Checking problematic file ===" && \
+     cat src/components/markdown/markdown-editor-container.tsx | head -20 && \
      exit 1)
 
 # Production stage
