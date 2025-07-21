@@ -103,7 +103,8 @@ export function FileUploadZone({
     const fileCount = files.length
     setFiles([])
     onFilesSelected([])
-    announceAction(`Cleared all ${fileCount} files from upload queue`)
+    // TODO: Add screen reader announcement
+    // announceAction(`Cleared all ${fileCount} files from upload queue`)
   }
 
   const formatFileSize = (bytes: number) => {

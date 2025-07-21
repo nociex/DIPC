@@ -20,7 +20,9 @@ export interface TranslationKeys {
   'upload.progress.uploading': string;
   'upload.progress.analyzing': string;
   'upload.error.fileSize': string;
+  'upload.error.fileSizeDescription': string;
   'upload.error.fileType': string;
+  'upload.error.fileTypeDescription': string;
   'upload.error.network': string;
   'upload.button.selectFiles': string;
   'upload.button.startProcessing': string;
@@ -377,6 +379,19 @@ export interface TranslationKeys {
   'workspace.sidebar.tasksCollapsed': string;
   'workspace.sidebar.fileCount': string;
   'workspace.sidebar.taskCount': string;
+  
+  // Device Detection
+  'accessibility.device.mobile': string;
+  'accessibility.device.tablet': string;
+  'accessibility.device.desktop': string;
+  'accessibility.touch': string;
+  'accessibility.mouse': string;
+  'accessibility.touchCapability': string;
+  'accessibility.systemDetection': string;
+  'accessibility.screenSize': string;
+  'accessibility.orientation': string;
+  'accessibility.orientation.portrait': string;
+  'accessibility.orientation.landscape': string;
 }
 
 export type TranslationFunction = (key: keyof TranslationKeys, params?: Record<string, any>) => string;
