@@ -97,14 +97,14 @@ jobs:
           echo "Dockerfile: ${{ matrix.service.dockerfile }}"
           echo "=== Directory contents ==="
           ls -la ${{ matrix.service.context }}
+          echo "=== src directory contents ==="
+          ls -la ${{ matrix.service.context }}/src || echo "No src directory"
+          echo "=== src/lib directory contents ==="
+          ls -la ${{ matrix.service.context }}/src/lib || echo "No src/lib directory"
           echo "=== Package.json contents ==="
-          cat ${{ matrix.service.context }}/package.json || echo "No package.json found"
-          echo "=== Checking for node_modules ==="
-          if [ -d "${{ matrix.service.context }}/node_modules" ]; then
-            echo "node_modules exists"
-          else
-            echo "node_modules does NOT exist"
-          fi
+          cat ${{ matrix.service.context }}/package.json | head -20
+          echo "=== Check .dockerignore ==="
+          cat ${{ matrix.service.context }}/.dockerignore || echo "No .dockerignore"
       
       # 设置 Docker Buildx 调试模式
       - name: Enable Docker Buildx debug mode

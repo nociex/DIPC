@@ -15,28 +15,21 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Debug after COPY: Check what was copied
+RUN echo "=== After COPY . . ===" && \
+    echo "=== Root directory ===" && \
+    ls -la && \
+    echo "=== Looking for src ===" && \
+    find . -type d -name "src" 2>/dev/null | head -10 || echo "No src found" && \
+    echo "=== All directories ===" && \
+    find . -type d -maxdepth 2 | sort
+
 # Set build-time environment variables
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Debug: Show environment and installed packages
-RUN echo "=== Build Environment ===" && \
-    node --version && \
-    npm --version && \
-    echo "=== Installed packages ===" && \
-    npm list --depth=0 || true && \
-    echo "=== Directory structure ===" && \
-    ls -la && \
-    echo "=== src directory ===" && \
-    ls -la src/ && \
-    echo "=== src/lib directory ===" && \
-    ls -la src/lib/ && \
-    echo "=== Checking export-manager.ts ===" && \
-    ls -la src/lib/export-manager.ts || echo "export-manager.ts NOT FOUND"
-
-# Test imports before build
-COPY test-imports.js ./
-RUN node test-imports.js || true
+# Verify src directory exists before build
+RUN test -d src || (echo "ERROR: src directory not found!" && exit 1)
 
 # Build the Next.js application with verbose output
 RUN npm run build || \
