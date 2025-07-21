@@ -2,16 +2,18 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Copy, Download, Eye, EyeOff, ChevronDown, ChevronRight, Edit3 } from 'lucide-react'
+import { Copy, Download, Eye, EyeOff, ChevronDown, ChevronRight, Edit3, X } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { TaskStatusChecker } from '@/lib/task-status-checker'
 import type { Task } from '@/types'
+import { useAnnouncements } from '@/hooks/use-accessibility'
 
 interface ResultsViewerProps {
   task: Task
   onDownload?: (task: Task) => void
+  onClose?: () => void
   className?: string
 }
 
@@ -23,6 +25,7 @@ interface JsonViewerProps {
 
 function JsonViewer({ data, level = 0, expanded = true }: JsonViewerProps) {
   const [isExpanded, setIsExpanded] = useState(expanded)
+  const { announce } = useAnnouncements()
   
   if (data === null) {
     return <span className="text-gray-500">null</span>
@@ -48,8 +51,13 @@ function JsonViewer({ data, level = 0, expanded = true }: JsonViewerProps) {
     return (
       <div>
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={() => {
+            setIsExpanded(!isExpanded)
+            announce(`Array with ${data.length} items ${isExpanded ? 'collapsed' : 'expanded'}`)
+          }}
           className="flex items-center text-gray-600 hover:text-gray-800"
+          aria-expanded={isExpanded}
+          aria-label={`Toggle array with ${data.length} items`}
         >
           {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
           <span className="ml-1">[{data.length} items]</span>
@@ -77,8 +85,13 @@ function JsonViewer({ data, level = 0, expanded = true }: JsonViewerProps) {
     return (
       <div>
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={() => {
+            setIsExpanded(!isExpanded)
+            announce(`Object with ${keys.length} keys ${isExpanded ? 'collapsed' : 'expanded'}`)
+          }}
           className="flex items-center text-gray-600 hover:text-gray-800"
+          aria-expanded={isExpanded}
+          aria-label={`Toggle object with ${keys.length} keys`}
         >
           {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
           <span className="ml-1">{'{'}...{'}'} ({keys.length} keys)</span>
@@ -101,11 +114,12 @@ function JsonViewer({ data, level = 0, expanded = true }: JsonViewerProps) {
   return <span className="text-gray-500">{String(data)}</span>
 }
 
-export function ResultsViewer({ task, onDownload, className }: ResultsViewerProps) {
+export function ResultsViewer({ task, onDownload, onClose, className }: ResultsViewerProps) {
   const [viewMode, setViewMode] = useState<'formatted' | 'raw'>('formatted')
   const [showMetadata, setShowMetadata] = useState(true)
   const { toast } = useToast()
   const router = useRouter()
+  const { announce } = useAnnouncements()
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -114,12 +128,14 @@ export function ResultsViewer({ task, onDownload, className }: ResultsViewerProp
         title: "Copied to clipboard",
         description: "Results have been copied to your clipboard",
       })
+      announce("Results copied to clipboard")
     } catch (error) {
       toast({
         title: "Copy failed",
         description: "Failed to copy results to clipboard",
         variant: "destructive",
       })
+      announce("Failed to copy results to clipboard")
     }
   }
 
@@ -156,7 +172,7 @@ export function ResultsViewer({ task, onDownload, className }: ResultsViewerProp
   const resultsJson = JSON.stringify(task.results, null, 2)
 
   return (
-    <Card className={className}>
+    <Card className={className} role="region" aria-label="Task results viewer">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -169,7 +185,12 @@ export function ResultsViewer({ task, onDownload, className }: ResultsViewerProp
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setViewMode(viewMode === 'formatted' ? 'raw' : 'formatted')}
+              onClick={() => {
+                const newMode = viewMode === 'formatted' ? 'raw' : 'formatted'
+                setViewMode(newMode)
+                announce(`Switched to ${newMode} view mode`)
+              }}
+              aria-label={`Switch to ${viewMode === 'formatted' ? 'raw' : 'formatted'} view`}
             >
               {viewMode === 'formatted' ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
               {viewMode === 'formatted' ? 'Raw' : 'Formatted'}
@@ -178,6 +199,7 @@ export function ResultsViewer({ task, onDownload, className }: ResultsViewerProp
               variant="outline"
               size="sm"
               onClick={() => copyToClipboard(resultsJson)}
+              aria-label="Copy results to clipboard"
             >
               <Copy className="h-4 w-4 mr-2" />
               Copy
@@ -188,6 +210,7 @@ export function ResultsViewer({ task, onDownload, className }: ResultsViewerProp
                 size="sm"
                 onClick={handleMarkdownEdit}
                 title="Edit results as Markdown"
+                aria-label="Edit results in Markdown format"
               >
                 <Edit3 className="h-4 w-4 mr-2" />
                 Markdown编辑
@@ -198,9 +221,20 @@ export function ResultsViewer({ task, onDownload, className }: ResultsViewerProp
                 variant="outline"
                 size="sm"
                 onClick={() => onDownload(task)}
+                aria-label="Download task results"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download
+              </Button>
+            )}
+            {onClose && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClose}
+                aria-label="Close results viewer"
+              >
+                <X className="h-4 w-4" />
               </Button>
             )}
           </div>
@@ -211,8 +245,13 @@ export function ResultsViewer({ task, onDownload, className }: ResultsViewerProp
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowMetadata(!showMetadata)}
+            onClick={() => {
+              setShowMetadata(!showMetadata)
+              announce(showMetadata ? "Task details collapsed" : "Task details expanded")
+            }}
             className="text-xs"
+            aria-expanded={showMetadata}
+            aria-controls="task-metadata"
           >
             {showMetadata ? <ChevronDown className="h-3 w-3 mr-1" /> : <ChevronRight className="h-3 w-3 mr-1" />}
             Task Details
@@ -221,7 +260,7 @@ export function ResultsViewer({ task, onDownload, className }: ResultsViewerProp
 
         {/* Task Metadata */}
         {showMetadata && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg text-sm">
+          <div id="task-metadata" className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg text-sm" role="region" aria-label="Task metadata details">
             <div>
               <span className="text-muted-foreground">Status:</span>
               <p className="font-medium capitalize">{task.status}</p>
@@ -248,15 +287,20 @@ export function ResultsViewer({ task, onDownload, className }: ResultsViewerProp
 
       <CardContent>
         <div className="space-y-4">
+          {/* Live region for result updates */}
+          <div className="sr-only" aria-live="polite" aria-atomic="true">
+            Results for task {task.id.slice(0, 8)} are now displayed in {viewMode} mode
+          </div>
+          
           {viewMode === 'formatted' ? (
-            <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-auto">
+            <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-auto" role="region" aria-label="Formatted results view">
               <div className="font-mono text-sm">
                 <JsonViewer data={task.results} />
               </div>
             </div>
           ) : (
-            <div className="bg-gray-900 text-green-400 rounded-lg p-4 max-h-96 overflow-auto">
-              <pre className="font-mono text-sm whitespace-pre-wrap">
+            <div className="bg-gray-900 text-green-400 rounded-lg p-4 max-h-96 overflow-auto" role="region" aria-label="Raw JSON results view">
+              <pre className="font-mono text-sm whitespace-pre-wrap" aria-label="Raw JSON data">
                 {resultsJson}
               </pre>
             </div>

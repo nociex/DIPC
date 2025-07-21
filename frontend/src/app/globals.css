@@ -57,3 +57,201 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Accessibility: High Contrast Mode */
+.high-contrast {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 0%;
+  --primary: 0 0% 0%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 90%;
+  --secondary-foreground: 0 0% 0%;
+  --muted: 0 0% 90%;
+  --muted-foreground: 0 0% 20%;
+  --accent: 0 0% 80%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 100% 35%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 0%;
+  --input: 0 0% 0%;
+  --ring: 0 0% 0%;
+}
+
+.high-contrast.dark {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 0%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 0%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 0 0% 100%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 10%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 80%;
+  --accent: 0 0% 20%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 100% 65%;
+  --destructive-foreground: 0 0% 0%;
+  --border: 0 0% 100%;
+  --input: 0 0% 100%;
+  --ring: 0 0% 100%;
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Accessibility: Font Size Scaling */
+.font-small {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.font-medium {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.font-large {
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.font-extra-large {
+  font-size: 20px;
+  line-height: 1.6;
+}
+
+/* Accessibility: Focus Visible */
+.focus-visible *:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.focus-visible button:focus-visible,
+.focus-visible a:focus-visible,
+.focus-visible [role="button"]:focus-visible,
+.focus-visible [tabindex]:focus-visible:not([tabindex="-1"]),
+.focus-visible input:focus-visible,
+.focus-visible select:focus-visible,
+.focus-visible textarea:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(var(--ring), 0.2);
+}
+
+/* Accessibility: Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.not-sr-only {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Accessibility: Skip Links */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.5rem 1rem;
+  z-index: 100;
+  text-decoration: none;
+  border-radius: 0 0 0.25rem 0;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Accessibility: Keyboard Navigation */
+.keyboard-navigation *:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.keyboard-navigation .focus-within\:ring-2:focus-within {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+/* Accessibility: High Contrast Borders */
+.high-contrast .border,
+.high-contrast .border-t,
+.high-contrast .border-b,
+.high-contrast .border-l,
+.high-contrast .border-r {
+  border-color: var(--border) !important;
+  border-width: 2px !important;
+}
+
+.high-contrast .divide-y > * + * {
+  border-top-width: 2px !important;
+  border-color: var(--border) !important;
+}
+
+/* Accessibility: Touch Target Sizing */
+@media (pointer: coarse) {
+  button,
+  a,
+  [role="button"],
+  input[type="checkbox"],
+  input[type="radio"],
+  select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Accessibility: Print Styles */
+@media print {
+  .no-print,
+  .skip-link,
+  button[aria-label*="menu"],
+  button[aria-label*="settings"] {
+    display: none !important;
+  }
+  
+  .print\:block {
+    display: block !important;
+  }
+}
