@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useTranslation } from '@/lib/i18n/context'
-import { cn } from '@/lib/utils'
+import { cn, generateClientId } from '@/lib/utils'
 import { 
   Upload, 
   FileText, 
@@ -123,9 +123,9 @@ export function EnhancedDropZone({
   const dropZoneRef = useRef<HTMLDivElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
   
-  // Generate unique ID for files
+  // Generate unique ID for files (client-side only to avoid hydration issues)
   const generateFileId = useCallback(() => {
-    return `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    return generateClientId('file')
   }, [])
 
   // Validate file against constraints

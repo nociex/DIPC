@@ -64,7 +64,7 @@ export function ProcessingState() {
     if (groupedTasks.active.length === 0) return 100
     
     // Simulate progress based on task age for demo
-    const now = Date.now()
+    const now = typeof window !== 'undefined' ? Date.now() : 0
     const avgProgress = groupedTasks.active.reduce((acc, task) => {
       const taskAge = now - new Date(task.created_at).getTime()
       const estimatedProgress = Math.min(90, (taskAge / (5 * 60 * 1000)) * 100) // 5 minutes to 90%
@@ -90,7 +90,7 @@ export function ProcessingState() {
     if (task.status === TaskStatus.FAILED) return -1
     
     // Simulate step progression based on task age
-    const taskAge = Date.now() - new Date(task.created_at).getTime()
+    const taskAge = typeof window !== 'undefined' ? Date.now() - new Date(task.created_at).getTime() : 0
     const progressRatio = Math.min(0.9, taskAge / (5 * 60 * 1000)) // 5 minutes to 90%
     return Math.floor(progressRatio * 4)
   }

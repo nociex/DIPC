@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef } from 'react'
 import { useTranslation } from '@/lib/i18n/context'
-import { cn } from '@/lib/utils'
+import { cn, generateClientId } from '@/lib/utils'
 import { 
   Upload, 
   FolderPlus, 
@@ -140,7 +140,7 @@ export function MultipleDropZones({
       if (zone) {
         const enhancedFiles: EnhancedFile[] = Array.from(files).map(file => ({
           ...file,
-          id: `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          id: generateClientId('file'),
           uploadStatus: 'pending' as const,
           uploadProgress: 0
         }))

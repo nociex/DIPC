@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from '@/lib/i18n/context'
-import { cn } from '@/lib/utils'
+import { cn, generateClientId } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
 import { FileAnalysisService, FileAnalysisResult } from '@/lib/file-analysis'
 import { FileAnalysisDisplay } from './file-analysis-display'
@@ -121,7 +121,7 @@ export function BatchUploadManager({
     if (files.length > 0) {
       const newBatchFiles: BatchFile[] = files.map((file, index) => ({
         ...file,
-        id: `batch_${Date.now()}_${index}`,
+        id: generateClientId(`batch_${index}`),
         uploadStatus: 'pending',
         uploadProgress: 0,
         retryCount: 0,

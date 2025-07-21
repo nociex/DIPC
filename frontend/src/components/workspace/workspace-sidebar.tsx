@@ -109,7 +109,7 @@ export function WorkspaceSidebar({ className }: WorkspaceSidebarProps) {
   const overallProgress = useMemo(() => {
     if (groupedTasks.active.length === 0) return 0
     // For demo purposes, we'll simulate progress based on task age
-    const now = Date.now()
+    const now = typeof window !== 'undefined' ? Date.now() : 0
     const avgProgress = groupedTasks.active.reduce((acc, task) => {
       const taskAge = now - new Date(task.created_at).getTime()
       const estimatedProgress = Math.min(90, (taskAge / (5 * 60 * 1000)) * 100) // 5 minutes to 90%

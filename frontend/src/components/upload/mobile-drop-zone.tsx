@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useTranslation } from '@/lib/i18n/context'
 import { useResponsive } from '@/hooks/use-responsive'
-import { cn } from '@/lib/utils'
+import { cn, generateClientId } from '@/lib/utils'
 import { 
   Upload, 
   FileText, 
@@ -94,9 +94,9 @@ export function MobileDropZone({
   const SWIPE_THRESHOLD = 50
   const TAP_THRESHOLD = 10
 
-  // Generate unique ID for files
+  // Generate unique ID for files (client-side only to avoid hydration issues)
   const generateFileId = useCallback(() => {
-    return `mobile_file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    return generateClientId('mobile_file')
   }, [])
 
   // Process files with mobile-specific enhancements
@@ -179,7 +179,7 @@ export function MobileDropZone({
     const newTouchState: TouchState = {
       startX: touch.clientX,
       startY: touch.clientY,
-      startTime: Date.now(),
+      startTime: typeof window !== 'undefined' ? Date.now() : 0,
       currentX: touch.clientX,
       currentY: touch.clientY,
       isLongPress: false
@@ -232,7 +232,7 @@ export function MobileDropZone({
 
     const deltaX = touchState.currentX - touchState.startX
     const deltaY = touchState.currentY - touchState.startY
-    const deltaTime = Date.now() - touchState.startTime
+    const deltaTime = typeof window !== 'undefined' ? Date.now() - touchState.startTime : 0
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
 
     // Determine gesture type
