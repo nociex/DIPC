@@ -61,6 +61,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+        timeout-minutes: 5
       
       # 登录到 Docker Hub (可选，如果需要推送到 Docker Hub)
       # - name: Log in to Docker Hub
