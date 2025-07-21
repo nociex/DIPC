@@ -7,6 +7,7 @@ export interface TranslationKeys {
   'nav.processing': string;
   'nav.results': string;
   'nav.settings': string;
+  'nav.main': string;
   'nav.language.toggle': string;
   'nav.language.chinese': string;
   'nav.language.english': string;
@@ -306,6 +307,73 @@ export interface TranslationKeys {
   'onboarding.skip': string;
   'onboarding.next': string;
   'onboarding.finish': string;
+  
+  // Mobile Upload
+  'upload.mobile.tapToExpand': string;
+  'upload.mobile.swipeUpHint': string;
+  'upload.mobile.tapToSelect': string;
+  'upload.mobile.browseFiles': string;
+  'upload.mobile.takePhoto': string;
+  'upload.mobile.selectFromGallery': string;
+  'upload.selectFiles': string;
+  'upload.device.mobile': string;
+  'upload.device.tablet': string;
+  'upload.device.desktop': string;
+  'upload.touch.touch': string;
+  'upload.touch.no-touch': string;
+  'upload.touch.hybrid': string;
+  
+  // Workspace Mobile
+  'workspace.sidebar.show': string;
+  
+  // Accessibility
+  'accessibility.skipToMain': string;
+  'accessibility.skipToSidebar': string;
+  'accessibility.highContrast': string;
+  'accessibility.highContrast.description': string;
+  'accessibility.reducedMotion': string;
+  'accessibility.reducedMotion.description': string;
+  'accessibility.fontSize': string;
+  'accessibility.fontSize.description': string;
+  'accessibility.fontSize.small': string;
+  'accessibility.fontSize.medium': string;
+  'accessibility.fontSize.large': string;
+  'accessibility.fontSize.extraLarge': string;
+  'accessibility.focusVisible': string;
+  'accessibility.focusVisible.description': string;
+  'accessibility.keyboardNavigation': string;
+  'accessibility.keyboardNavigation.description': string;
+  'accessibility.screenReader': string;
+  'accessibility.announcements': string;
+  'accessibility.announcements.description': string;
+  'accessibility.soundEnabled': string;
+  'accessibility.soundEnabled.description': string;
+  'accessibility.stickyKeys': string;
+  'accessibility.stickyKeys.description': string;
+  'accessibility.slowKeys': string;
+  'accessibility.slowKeys.description': string;
+  'accessibility.visual.title': string;
+  'accessibility.interaction.title': string;
+  'accessibility.audio.title': string;
+  'accessibility.settings.toggle': string;
+  
+  // Skip Links
+  'accessibility.skipLinks.main': string;
+  'accessibility.skipLinks.navigation': string;
+  'accessibility.skipLinks.upload': string;
+  'accessibility.skipLinks.results': string;
+  'accessibility.skipLinks.label': string;
+  
+  // Workspace Sidebar Accessibility
+  'workspace.sidebar.collapsed': string;
+  'workspace.sidebar.expanded': string;
+  'workspace.sidebar.closeOverlay': string;
+  'workspace.sidebar.filesExpanded': string;
+  'workspace.sidebar.filesCollapsed': string;
+  'workspace.sidebar.tasksExpanded': string;
+  'workspace.sidebar.tasksCollapsed': string;
+  'workspace.sidebar.fileCount': string;
+  'workspace.sidebar.taskCount': string;
 }
 
 export type TranslationFunction = (key: keyof TranslationKeys, params?: Record<string, any>) => string;
