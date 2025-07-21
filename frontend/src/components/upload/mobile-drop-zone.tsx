@@ -446,7 +446,7 @@ export function MobileDropZone({
                 }}
                 disabled={disabled}
               >
-                <Image className="mr-3 h-5 w-5" alt="" />
+                <Image className="mr-3 h-5 w-5" />
                 {t('upload.mobile.selectFromGallery')}
               </Button>
             )}

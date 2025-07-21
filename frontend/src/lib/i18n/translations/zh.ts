@@ -357,6 +357,9 @@ const zhTranslations: TranslationKeys = {
   'accessibility.orientation.landscape': '横屏',
   'accessibility.touch': '触摸',
   'accessibility.mouse': '鼠标',
+  'accessibility.touch.touch': '触摸',
+  'accessibility.touch.no-touch': '鼠标',
+  'accessibility.touch.hybrid': '触摸 + 鼠标',
   
   // Skip Links
   'accessibility.skipLinks.main': '跳转到主内容',

@@ -405,6 +405,9 @@ export interface TranslationKeys {
   'accessibility.touch': string;
   'accessibility.mouse': string;
   'accessibility.touchCapability': string;
+  'accessibility.touch.touch': string;
+  'accessibility.touch.no-touch': string;
+  'accessibility.touch.hybrid': string;
   'accessibility.systemDetection': string;
   'accessibility.screenSize': string;
   'accessibility.orientation': string;

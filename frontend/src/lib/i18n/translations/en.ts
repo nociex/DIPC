@@ -379,6 +379,9 @@ const enTranslations: TranslationKeys = {
   'accessibility.orientation.landscape': 'Landscape',
   'accessibility.touch': 'Touch',
   'accessibility.mouse': 'Mouse',
+  'accessibility.touch.touch': 'Touch',
+  'accessibility.touch.no-touch': 'Mouse',
+  'accessibility.touch.hybrid': 'Touch + Mouse',
   
   // Help and Onboarding
   'help.title': 'Help & Support',
